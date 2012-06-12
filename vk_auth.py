@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: UTF-8 -*-
+
 import cookielib
 import urllib2
 import urllib
@@ -40,41 +43,47 @@ class FormParser(HTMLParser):
             self.in_form = False
             self.form_parsed = True
 
-def auth_user(email, password, client_id, scope, opener):
-    response = opener.open(
-        "http://oauth.vk.com/oauth/authorize?" + \
-        "redirect_uri=http://oauth.vk.com/blank.html&response_type=token&" + \
-        "client_id=%s&scope=%s&display=wap" % (client_id, ",".join(scope))
-        )
-    doc = response.read()
-    parser = FormParser()
-    parser.feed(doc)
-    parser.close()
-    if not parser.form_parsed or parser.url is None or "pass" not in parser.params or \
-      "email" not in parser.params:
-          raise RuntimeError("Something wrong")
-    parser.params["email"] = email
-    parser.params["pass"] = password
-    if parser.method == "POST":
-        response = opener.open(parser.url, urllib.urlencode(parser.params))
-    else:
-        raise NotImplementedError("Method '%s'" % params.method)
-    return response.read(), response.geturl()
-
-def give_access(doc, opener):
-    parser = FormParser()
-    parser.feed(doc)
-    parser.close()
-    if not parser.form_parsed or parser.url is None:
-          raise RuntimeError("Something wrong")
-    if parser.method == "POST":
-        response = opener.open(parser.url, urllib.urlencode(parser.params))
-    else:
-        raise NotImplementedError("Method '%s'" % params.method)
-    return response.geturl()
-
-
 def auth(email, password, client_id, scope):
+    def split_key_value(kv_pair):
+        kv = kv_pair.split("=")
+        return kv[0], kv[1]
+
+    # Authorization form
+    def auth_user(email, password, client_id, scope, opener):
+        response = opener.open(
+            "http://oauth.vk.com/oauth/authorize?" + \
+            "redirect_uri=http://oauth.vk.com/blank.html&response_type=token&" + \
+            "client_id=%s&scope=%s&display=wap" % (client_id, ",".join(scope))
+            )
+        doc = response.read()
+        parser = FormParser()
+        parser.feed(doc)
+        parser.close()
+        if not parser.form_parsed or parser.url is None or "pass" not in parser.params or \
+          "email" not in parser.params:
+              raise RuntimeError("Something wrong")
+        parser.params["email"] = email
+        parser.params["pass"] = password
+        if parser.method == "POST":
+            response = opener.open(parser.url, urllib.urlencode(parser.params))
+        else:
+            raise NotImplementedError("Method '%s'" % params.method)
+        return response.read(), response.geturl()
+
+    # Permission request form
+    def give_access(doc, opener):
+        parser = FormParser()
+        parser.feed(doc)
+        parser.close()
+        if not parser.form_parsed or parser.url is None:
+              raise RuntimeError("Something wrong")
+        if parser.method == "POST":
+            response = opener.open(parser.url, urllib.urlencode(parser.params))
+        else:
+            raise NotImplementedError("Method '%s'" % params.method)
+        return response.geturl()
+
+
     if not isinstance(scope, list):
         scope = [scope]
     opener = urllib2.build_opener(
@@ -86,11 +95,6 @@ def auth(email, password, client_id, scope):
         url = give_access(doc, opener)
     if urlparse(url).path != "/blank.html":
         raise RuntimeError("Expected success here")
-
-    def split_key_value(kv_pair):
-        kv = kv_pair.split("=")
-        return kv[0], kv[1]
-
     answer = dict(split_key_value(kv_pair) for kv_pair in urlparse(url).fragment.split("&"))
     if "access_token" not in answer or "user_id" not in answer:
         raise RuntimeError("Missing some values in answer")
