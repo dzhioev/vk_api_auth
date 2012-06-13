@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 # -*- coding: UTF-8 -*-
 
 import vk_auth
@@ -40,6 +40,9 @@ def save_photos(urls, directory):
         print "Downloading %s" % filename
         open(filename, "w").write(urllib2.urlopen(url).read())
 
+directory = None
+if len(sys.argv) == 2:
+    directory = sys.argv[1]
 email = raw_input("Email: ")
 password = getpass.getpass()
 client_id = "2951857" # Vk application ID
@@ -49,6 +52,7 @@ print "\n".join("%d. %s" % (num + 1, album["title"]) for num, album in enumerate
 choice = -1
 while choice not in xrange(len(albums)):
     choice = int(raw_input("Choose album number: ")) - 1
-directory = albums[choice]["title"]
+if not directory:
+    directory = albums[choice]["title"]
 photos_urls = get_photos_urls(user_id, albums[choice]["aid"], token)
 save_photos(photos_urls, directory)
