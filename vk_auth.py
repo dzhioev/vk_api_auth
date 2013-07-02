@@ -23,12 +23,12 @@ class FormParser(HTMLParser):
                 raise RuntimeError("Second form on page")
             if self.in_form:
                 raise RuntimeError("Already in form")
-            self.in_form = True 
+            self.in_form = True
         if not self.in_form:
             return
         attrs = dict((name.lower(), value) for name, value in attrs)
         if tag == "form":
-            self.url = attrs["action"] 
+            self.url = attrs["action"]
             if "method" in attrs:
                 self.method = attrs["method"]
         elif tag == "input" and "type" in attrs and "name" in attrs:
@@ -98,5 +98,5 @@ def auth(email, password, client_id, scope):
     answer = dict(split_key_value(kv_pair) for kv_pair in urlparse(url).fragment.split("&"))
     if "access_token" not in answer or "user_id" not in answer:
         raise RuntimeError("Missing some values in answer")
-    return answer["access_token"], answer["user_id"] 
+    return answer["access_token"], answer["user_id"]
 

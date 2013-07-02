@@ -11,7 +11,7 @@ import sys
 
 def call_api(method, params, token):
     params.append(("access_token", token))
-    url = "https://api.vk.com/method/%s?%s" % (method, urlencode(params)) 
+    url = "https://api.vk.com/method/%s?%s" % (method, urlencode(params))
     return json.loads(urllib2.urlopen(url).read())["response"]
 
 def get_albums(user_id, token):
@@ -56,3 +56,4 @@ if not directory:
     directory = albums[choice]["title"]
 photos_urls = get_photos_urls(user_id, albums[choice]["aid"], token)
 save_photos(photos_urls, directory)
+
