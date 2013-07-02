@@ -64,10 +64,10 @@ def auth(email, password, client_id, scope):
               raise RuntimeError("Something wrong")
         parser.params["email"] = email
         parser.params["pass"] = password
-        if parser.method == "POST":
+        if parser.method.upper() == "POST":
             response = opener.open(parser.url, urllib.urlencode(parser.params))
         else:
-            raise NotImplementedError("Method '%s'" % params.method)
+            raise NotImplementedError("Method '%s'" % parser.method)
         return response.read(), response.geturl()
 
     # Permission request form
