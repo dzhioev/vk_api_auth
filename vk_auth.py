@@ -30,7 +30,7 @@ class FormParser(HTMLParser):
         if tag == "form":
             self.url = attrs["action"]
             if "method" in attrs:
-                self.method = attrs["method"]
+                self.method = attrs["method"].upper()
         elif tag == "input" and "type" in attrs and "name" in attrs:
             if attrs["type"] in ["hidden", "text", "password"]:
                 self.params[attrs["name"]] = attrs["value"] if "value" in attrs else ""
@@ -64,7 +64,7 @@ def auth(email, password, client_id, scope):
               raise RuntimeError("Something wrong")
         parser.params["email"] = email
         parser.params["pass"] = password
-        if parser.method.upper() == "POST":
+        if parser.method == "POST":
             response = opener.open(parser.url, urllib.urlencode(parser.params))
         else:
             raise NotImplementedError("Method '%s'" % parser.method)
