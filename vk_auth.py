@@ -80,7 +80,7 @@ def auth(email, password, client_id, scope):
         if parser.method == "POST":
             response = opener.open(parser.url, urllib.urlencode(parser.params))
         else:
-            raise NotImplementedError("Method '%s'" % params.method)
+            raise NotImplementedError("Method '%s'" % parser.method)
         return response.geturl()
 
 
