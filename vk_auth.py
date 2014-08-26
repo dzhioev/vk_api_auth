@@ -50,6 +50,10 @@ def auth(email, password, client_id, scope):
 
     # Authorization form
     def auth_user(email, password, client_id, scope, opener):
+        url = "http://oauth.vk.com/oauth/authorize?" + \
+            "redirect_uri=http://oauth.vk.com/blank.html&response_type=token&" + \
+            "client_id=%s&scope=%s&display=wap" % (client_id, ",".join(scope))
+        print "Initial url: %s" % url
         response = opener.open(
             "http://oauth.vk.com/oauth/authorize?" + \
             "redirect_uri=http://oauth.vk.com/blank.html&response_type=token&" + \
@@ -81,8 +85,12 @@ def auth(email, password, client_id, scope):
             response = opener.open(parser.url, urllib.urlencode(parser.params))
         else:
             raise NotImplementedError("Method '%s'" % parser.method)
-        return response.geturl()
+        return response.read(), response.geturl()
 
+    def print_debug_info(doc, url):
+        log_delim = "==========================="
+        print "Url: %s" % url
+        print "Response:\n%s\n%s\n%s" % (log_delim, doc, log_delim)
 
     if not isinstance(scope, list):
         scope = [scope]
@@ -90,10 +98,12 @@ def auth(email, password, client_id, scope):
         urllib2.HTTPCookieProcessor(cookielib.CookieJar()),
         urllib2.HTTPRedirectHandler())
     doc, url = auth_user(email, password, client_id, scope, opener)
+    print_debug_info(doc, url)
     if urlparse(url).path != "/blank.html":
         # Need to give access to requested scope
-        url = give_access(doc, opener)
+        url, doc = give_access(doc, opener)
     if urlparse(url).path != "/blank.html":
+        print_debug_info(doc, url)
         raise RuntimeError("Expected success here")
     answer = dict(split_key_value(kv_pair) for kv_pair in urlparse(url).fragment.split("&"))
     if "access_token" not in answer or "user_id" not in answer:
